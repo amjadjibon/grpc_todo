@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package customer;
+option go_package="/customer;customer";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "go-proto-validators/validator.proto";
+
+message Customer {
+  string id = 1 [(validator.field) = {uuid_ver: 4}];
+  string first_name = 2 [(validator.field) = {regex: "^[A-Z][a-zA-Z]+$", string_not_empty: true}];
+  string last_name = 3 [(validator.field) = {regex: "^[A-Z][a-zA-Z]+$", string_not_empty: true}];
+  string phone_number = 4 [(validator.field) = {regex: "^01\\d{9}$", string_not_empty: true}];
+  string email = 5 [(validator.field) = {regex: ".+\\@.+\\..+", string_not_empty: true}];
+  string password = 6[(validator.field) = {regex: "^\\d{4}$", string_not_empty: true}];
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message ReadAllRequest{
+}
+
+message ReadAllResponse{
+  repeated Customer customer = 2;
+}
+
+message CreateRequest{
+  Customer customer = 1;
+}
+
+message CreateResponse{
+  Customer customer = 1;
+}
+
+message ReadRequest{
+  string phone_number = 1;
+}
+
+message ReadResponse{
+  Customer customer = 1;
+}
+
+message UpdateRequest{
+  Customer customer = 1;
+}
+
+message UpdateResponse{
+  bool updated = 1;
+  Customer customer = 2;
+}
+
+message DeleteRequest{
+  string phone_number = 1;
+}
+message DeleteResponse{
+  bool deleted = 1;
+}
+
+
+service CustomerService {
+  rpc ReadAll(ReadAllRequest) returns (ReadAllResponse){
+    option (google.api.http) = {
+      get: "/v1/customer/all"
+    };
+  }
+  rpc Create(CreateRequest) returns (CreateResponse){
+    option (google.api.http) = {
+      post: "/v1/customer/create"
+      body: "*"
+    };
+  }
+  rpc Read(ReadRequest) returns (ReadResponse){
+    option (google.api.http) = {
+      get: "/v1/customer/{phone_number}"
+    };
+  }
+  rpc Update(UpdateRequest) returns (UpdateResponse){
+    option (google.api.http) = {
+      put: "/v1/customer/{customer.phone_number}"
+      body: "*"
+
+      additional_bindings {
+        patch: "/v1/customer/{customer.phone_number}"
+        body: "*"
+      }
+    };
+  }
+  rpc Delete(DeleteRequest) returns (DeleteResponse){
+    option (google.api.http) = {
+      delete: "/v1/customer/{phone_number}"
+    };
+  }
+}
